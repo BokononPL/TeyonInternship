@@ -7,8 +7,10 @@
 #include "RacerController.h"
 #include "RacerState.h"
 #include "RaceState.h"
+#include "RacingGameMode.h"
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 ARacerPawn::ARacerPawn()
@@ -83,6 +85,26 @@ void ARacerPawn::Tick(float DeltaTime)
             }
         }
     }
+    if(HasAuthority() && CheckIsOffTrack())
+    {
+        if(RacerState)
+        {
+            RacerState->IsLapInvalidated = true;
+        }
+    }
+    if(RacerState)
+    {
+        Print(UKismetStringLibrary::Conv_BoolToString(RacerState->IsLapInvalidated), 0.0f);
+    }
+
+    // if(IsDrivingEnabled && !VehicleMovementComponent->GetUseAutoGears())
+    // {
+    //     Print("WTF", 10.0f);
+    // }
+    // if(!IsDrivingEnabled && VehicleMovementComponent->GetUseAutoGears())
+    // {
+    //     Print("NANI", 10.0f);
+    // }
 }
 
 void ARacerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -144,6 +166,7 @@ void ARacerPawn::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Out
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(ARacerPawn, TurnIndicatorSetting);
+    DOREPLIFETIME(ARacerPawn, IsDrivingEnabled);
 }
 
 void ARacerPawn::SetupCarParts()
@@ -409,7 +432,7 @@ void ARacerPawn::CheckpointCollision(AActor* ThisActor, AActor* OtherActor)
                         if(Checkpoint->CheckpointIndex == RacerState->CurrentCheckpoint + 1)
                         {
                             RacerState->CurrentCheckpoint = Checkpoint->CheckpointIndex;
-
+    
                         }
                     }
                     else
@@ -417,18 +440,30 @@ void ARacerPawn::CheckpointCollision(AActor* ThisActor, AActor* OtherActor)
                         if(RacerState->CurrentCheckpoint == RaceState->MaxCheckpointIndex)
                         {
                             RacerState->CurrentCheckpoint = Checkpoint->CheckpointIndex;
-                            RacerState->CurrentLap++;
-                            RacerState->LapTimes.Add(RaceState->GetServerWorldTimeSeconds() - RaceState->RaceStartTime);
-                            if(IsLocallyControlled())
+                            if(RacerState->IsLapInvalidated)
                             {
-                                if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
-                                {
-                                    RacerController->AddLapTime(RacerState->CurrentLap, RacerState->LapTimes.Last());
-                                }
+                                RacerState->IsLapInvalidated = false;
                             }
-                            if(RacerState->CurrentLap == RaceState->MaxLaps)
+                            else
                             {
-                                //finish race
+                                RacerState->CurrentLap++;
+                                RacerState->LapTimes.Add(RaceState->GetServerWorldTimeSeconds() - RaceState->RaceStartTime);
+                                if(IsLocallyControlled())
+                                {
+                                    if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
+                                    {
+                                        RacerController->AddLapTime(RacerState->CurrentLap, RacerState->LapTimes.Last());
+                                    }
+                                }
+                                if(HasAuthority() && RacerState->CurrentLap == RaceState->MaxLaps)
+                                {
+                                    RaceState->FinishTimes.Add(FFinishInfo(RacerState->GetUniqueId(), RacerState->LapTimes.Last()));
+                                    //SetDrivingEnabled(false);
+                                    if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
+                                    {
+                                        RacerController->OnRaceFinished(RaceState->FinishTimes.Num());
+                                    }
+                                }
                             }
                         }
                     }
@@ -438,8 +473,10 @@ void ARacerPawn::CheckpointCollision(AActor* ThisActor, AActor* OtherActor)
     }
 }
 
+
 void ARacerPawn::SetDrivingEnabled(bool IsEnabled)
 {
+    IsDrivingEnabled = IsEnabled;
     if(VehicleMovementComponent)
     {
         if(IsEnabled)
@@ -456,8 +493,19 @@ void ARacerPawn::SetDrivingEnabled(bool IsEnabled)
             VehicleMovementComponent->bThrottleAsBrake = false;
         }
     }
-    else
+}
+
+bool ARacerPawn::CheckIsOffTrack()
+{
+    if(!VehicleMovementComponent) return false;
+    ARaceState* RaceState = Cast<ARaceState>(GetWorld()->GetGameState());
+    if(!RaceState) return false;
+    for(int i = 0; i < VehicleMovementComponent->GetNumWheels() - 1; i++)
     {
-        Print("No VMC", 10.0f);
+        if(VehicleMovementComponent->GetWheelState(i).PhysMaterial != RaceState->OffTrackMaterial)
+        {
+            return false;
+        }
     }
+    return true;
 }

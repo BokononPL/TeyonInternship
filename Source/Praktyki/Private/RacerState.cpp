@@ -17,6 +17,7 @@ void ARacerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 	DOREPLIFETIME(ARacerState, CurrentLap);
 	DOREPLIFETIME(ARacerState, CurrentCheckpoint);
 	DOREPLIFETIME(ARacerState, RacerInfo)
+	DOREPLIFETIME(ARacerState, IsLapInvalidated);
 }
 
 void ARacerState::CopyProperties(APlayerState* PlayerState)
@@ -38,4 +39,26 @@ void ARacerState::Tick(float DeltaTime)
 	{
 		Print("No Pawn", 0.0f);
 	}
+}
+
+void ARacerState::SetCurrentLap(int32 LapIndex)
+{
+	CurrentLap = LapIndex;
+	Server_SetCurrentLap(LapIndex);
+}
+
+void ARacerState::Server_SetCurrentLap_Implementation(int32 LapIndex)
+{
+	CurrentLap = LapIndex;
+}
+
+void ARacerState::SetCurrentCheckpoint(int32 CheckpointIndex)
+{
+	CurrentCheckpoint = CheckpointIndex;
+	Server_SetCurrentCheckpoint(CheckpointIndex);
+}
+
+void ARacerState::Server_SetCurrentCheckpoint_Implementation(int32 CheckpointIndex)
+{
+	CurrentCheckpoint = CheckpointIndex;
 }

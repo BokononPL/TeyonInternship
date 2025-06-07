@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "HUD_Widget.h"
+#include "GameOverWidget.h"
 #include "RacerPawn.h"
 #include "RacerController.generated.h"
 
@@ -26,13 +27,16 @@ public:
 	UHUD_Widget* HUD;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Interface")
-	UUserWidget* GameOverWidget;
+	UGameOverWidget* GameOverWidget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interface")
 	TSubclassOf<UHUD_Widget> HUD_Class;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interface")
 	TSubclassOf<UUserWidget> Menu_Class;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Interface")
+	TSubclassOf<UUserWidget> GameOverWidget_Class;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	ARacerPawn* PlayerVehiclePawn;
@@ -47,17 +51,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OpenMenu();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Client, Reliable)
 	void AddLapTime(int32 LapNumber, float LapTime);
-
-	UFUNCTION(BlueprintCallable, Client, Reliable)
-	void StartCountdown();
-
-	UFUNCTION(BlueprintCallable, Client, Reliable)
-	void SetPlayerInputEnabled(bool IsEnabled);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_NotifyIsReady();
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void OnRaceFinished(int32 Position);
 	
 	bool IsReady = false;
 };

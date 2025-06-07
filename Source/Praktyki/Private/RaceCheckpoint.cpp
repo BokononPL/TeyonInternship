@@ -3,7 +3,11 @@
 
 #include "RaceCheckpoint.h"
 
+#include "RacerController.h"
+#include "RacerState.h"
+#include "RaceState.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/KismetStringLibrary.h"
 
 // Sets default values
 ARaceCheckpoint::ARaceCheckpoint()
@@ -20,14 +24,12 @@ ARaceCheckpoint::ARaceCheckpoint()
 void ARaceCheckpoint::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void ARaceCheckpoint::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 bool ARaceCheckpoint::operator<(const ARaceCheckpoint& other) const

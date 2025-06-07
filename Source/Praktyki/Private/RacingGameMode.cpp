@@ -11,11 +11,11 @@
 #include "RaceState.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetStringLibrary.h"
 
 ARacingGameMode::ARacingGameMode()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	DefaultPawnClass = nullptr;
 }
 
 void ARacingGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
@@ -57,7 +57,6 @@ void ARacingGameMode::BeginPlay()
 
 	if(UMainGameInstance* GameInstance = Cast<UMainGameInstance>(GetWorld()->GetGameInstance()))
 	{
-		MaxLaps = GameInstance->MaxLaps;
 		ExpectedPlayersCount = GameInstance->ConnectedPlayersCount;
 	}
 }
@@ -65,24 +64,6 @@ void ARacingGameMode::BeginPlay()
 void ARacingGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-}
-
-APawn* ARacingGameMode::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)
-{
-	//return Super::SpawnDefaultPawnFor_Implementation(NewPlayer, StartSpot);
-
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Owner = NewPlayer;
-	APawn* NewPawn = GetWorld()->SpawnActor<APawn>(PawnClass, StartSpot->GetActorLocation(), StartSpot->GetActorRotation(), SpawnParameters);
-	if(NewPawn)
-	{
-		NewPlayer->Possess(NewPawn);
-		if(ARacerPawn* RacerPawn = Cast<ARacerPawn>(NewPawn))
-		{
-			RacerPawn->SetDrivingEnabled(false);
-		}
-	}
-	return NewPawn;
 }
 
 AActor* ARacingGameMode::ChoosePlayerStart_Implementation(AController* Player)
@@ -106,6 +87,14 @@ AActor* ARacingGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	return OutStart;
 }
 
+void ARacingGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+	FString& ErrorMessage)
+{
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+
+	ErrorMessage = "Cannot join a race in progress!";
+}
+
 void ARacingGameMode::OnPlayerBecomesReady()
 {
 	for(ARacerController* Controller : PlayerControllers)
@@ -115,5 +104,18 @@ void ARacingGameMode::OnPlayerBecomesReady()
 	if(ARaceState* RaceState = Cast<ARaceState>(GameState))
 	{
 		RaceState->StartCountdown();
+	}
+}
+
+void ARacingGameMode::OnPlayerFinishedRace(FFinishInfo FinishInfo)
+{
+	
+}
+
+void ARacingGameMode::RestartRace()
+{
+	if(UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GetGameInstance()))
+	{
+		MainGameInstance->TravelToMap(GetWorld()->GetMapName());
 	}
 }

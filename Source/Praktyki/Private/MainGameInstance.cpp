@@ -13,6 +13,7 @@ UMainGameInstance::UMainGameInstance()
 {
 	SearchCompleteDelegate = FOnFindSessionsCompleteDelegate::CreateUObject(this, &UMainGameInstance::SearchForSessionsComplete);
 	OnJoinSessionCompleteDelegate = FOnJoinSessionCompleteDelegate::CreateUObject(this, &UMainGameInstance::OnJoinSessionComplete);
+	OnDestroySessionCompleteDelegate = FOnDestroySessionCompleteDelegate::CreateUObject(this, &UMainGameInstance::OnDestroySessionComplete);
 }
 
 void UMainGameInstance::TravelToMap(FString MapName)
@@ -22,7 +23,7 @@ void UMainGameInstance::TravelToMap(FString MapName)
 		MaxLaps = GameMode->MaxLaps;
 		ConnectedPlayersCount = GameMode->MainMenuControllers.Num();
 	}
-	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), "servertravel " + MapName + "?listen", UGameplayStatics::GetPlayerController(GetWorld(),0));
+	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), "servertravel " + MapName, UGameplayStatics::GetPlayerController(GetWorld(),0));
 }
 
 void UMainGameInstance::QuitGame()
@@ -47,16 +48,15 @@ void UMainGameInstance::HostGame(int32 MaxPlayers, bool ShouldUse_LAN)
 			SessionSettings->NumPrivateConnections = 0;
 			SessionSettings->NumPublicConnections = MaxPlayers;
 			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			if(OnlineSessionPtr->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), "xD", *SessionSettings))
+			if(OnlineSessionPtr->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings))
 			{
 				Print("Session created", 20.0f);
-				OnlineSessionPtr->StartSession("xD");
+				OnlineSessionPtr->StartSession(NAME_GameSession);
 			}
 			else
 			{
 				Print("Session not created", 20.0f);
 			}
-			
 		}
 	}
 }
@@ -69,7 +69,7 @@ void UMainGameInstance::JoinGame(FSearchResult SearchResult)
 		{
 			OnJoinSessionCompleteDelegateHandle = OnlineSessionPtr->AddOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteDelegate);
 			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			if(OnlineSessionPtr->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), "xD", SearchResult.SearchResult))
+			if(OnlineSessionPtr->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, SearchResult.SearchResult))
 			{
 				Print("Session joined", 20.0f);
 			}
@@ -81,7 +81,7 @@ void UMainGameInstance::JoinGame(FSearchResult SearchResult)
 	}
 }
 
-void UMainGameInstance::FindSessions(bool IsLanQuery, int32 MaxSearchResults)
+void UMainGameInstance::FindGames(bool IsLanQuery, int32 MaxSearchResults)
 {
 	if(IOnlineSubsystem* OnlineSubsystem = Online::GetSubsystem(GetWorld()))
 	{
@@ -100,13 +100,38 @@ void UMainGameInstance::FindSessions(bool IsLanQuery, int32 MaxSearchResults)
 
 void UMainGameInstance::StartListenServer()
 {
-	UWorld* World = GetWorld();
-	if (World)
+	if (UWorld* World = GetWorld())
 	{
 		FURL URL;
 		URL.Map = World->GetMapName();
 		World->Listen(URL);
-		Print(URL.ToString(), 20.0f);
+	}
+}
+
+void UMainGameInstance::LeaveGame()
+{
+	if(APlayerController* const PlayerController = GetFirstLocalPlayerController())
+	{
+		PlayerController->ClientTravel(MainMenuMapName, ETravelType::TRAVEL_Absolute);
+	}
+}
+
+void UMainGameInstance::DestroyGame()
+{
+	if(IOnlineSubsystem* OnlineSubsystem = Online::GetSubsystem(GetWorld()))
+	{
+		if(IOnlineSessionPtr OnlineSessionPtr = OnlineSubsystem->GetSessionInterface())
+		{
+			OnDestroySessionCompleteDelegateHandle = OnlineSessionPtr->AddOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteDelegate);
+			if(OnlineSessionPtr->DestroySession(NAME_GameSession, OnDestroySessionCompleteDelegate))
+			{
+				Print("Session destroyed", 20.0f);
+			}
+			else
+			{
+				Print("Session not destroyed", 20.0f);
+			}
+		}
 	}
 }
 
@@ -138,9 +163,25 @@ void UMainGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionC
 			APlayerController * const PlayerController = GetFirstLocalPlayerController();
 			FString TravelURL;
 
-			if (PlayerController && OnlineSessionPtr->GetResolvedConnectString("xD", TravelURL))
+			if (PlayerController && OnlineSessionPtr->GetResolvedConnectString(NAME_GameSession, TravelURL))
 			{
 				PlayerController->ClientTravel(TravelURL, ETravelType::TRAVEL_Absolute);
+			}
+		}
+	}
+}
+
+void UMainGameInstance::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	if(IOnlineSubsystem* OnlineSubsystem = Online::GetSubsystem(GetWorld()))
+	{
+		if(IOnlineSessionPtr OnlineSessionPtr = OnlineSubsystem->GetSessionInterface())
+		{
+			OnlineSessionPtr->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteDelegateHandle);
+
+			if(APlayerController* const PlayerController = GetFirstLocalPlayerController())
+			{
+				PlayerController->ClientTravel(MainMenuMapName, ETravelType::TRAVEL_Absolute);
 			}
 		}
 	}

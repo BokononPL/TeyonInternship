@@ -6,6 +6,7 @@
 #include "RaceCheckpoint.h"
 #include "GameFramework/GameModeBase.h"
 #include "CPPUtils.h"
+#include "FinishInfo.h"
 #include "RacingGameMode.generated.h"
 
 /**
@@ -21,18 +22,18 @@ public:
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-	virtual APawn* SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot) override;
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 
 	void OnPlayerBecomesReady();
+	void OnPlayerFinishedRace(FFinishInfo FinishInfo);
 
-	int32 MaxLaps;
+	UFUNCTION(BlueprintCallable)
+	void RestartRace();
+
 	int32 ExpectedPlayersCount;
 	TArray<class ARacerController*> PlayerControllers;
 	TArray<ARaceCheckpoint*> RaceCheckpoints;
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<APawn> PawnClass;
 
 private:
 	bool HasFirstPlayerConnected = false;

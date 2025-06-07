@@ -233,4 +233,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetDrivingEnabled(bool IsEnabled);
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated)
+	bool IsDrivingEnabled;
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckIsOffTrack();
 };

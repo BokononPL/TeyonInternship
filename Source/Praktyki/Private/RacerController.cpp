@@ -3,6 +3,7 @@
 
 #include "RacerController.h"
 
+#include "RaceState.h"
 #include "RacingGameMode.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
@@ -61,12 +62,27 @@ void ARacerController::OpenMenu()
 	SetShowMouseCursor(true);
 }
 
-void ARacerController::AddLapTime(int32 LapNumber, float LapTime)
+void ARacerController::AddLapTime_Implementation(int32 LapNumber, float LapTime)
 {
-	if(IsLocalController() && HUD)
+	if(IsLocalPlayerController() && HUD)
 	{
 		HUD->AddLapTime(LapNumber, LapTime);
 	}
+}
+
+void ARacerController::OnRaceFinished_Implementation(int32 Position)
+{
+	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
+	GameOverWidget = CreateWidget<UGameOverWidget>(this, GameOverWidget_Class);
+	GameOverWidget->AddToViewport();
+	if(ARaceState* RaceState = GetWorld()->GetGameState<ARaceState>())
+	{
+		GameOverWidget->SetValues(Position, RaceState->FinishTimes);
+	}
+	PlayerVehiclePawn->SetDrivingEnabled(false);
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+	SetShowMouseCursor(true);
 }
 
 void ARacerController::Server_NotifyIsReady_Implementation()
@@ -75,28 +91,5 @@ void ARacerController::Server_NotifyIsReady_Implementation()
 	if(ARacingGameMode* RacingGameMode = Cast<ARacingGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		RacingGameMode->OnPlayerBecomesReady();
-	}
-}
-
-void ARacerController::SetPlayerInputEnabled_Implementation(bool IsEnabled)
-{
-	Print("Controller says: input enabled called", 15.0f);
-	if(!GetPawn()) return;
-	if(IsEnabled)
-	{
-		GetPawn()->EnableInput(this);
-	}
-	else
-	{
-		GetPawn()->DisableInput(this);
-	}
-}
-
-void ARacerController::StartCountdown_Implementation()
-{
-	if(HUD)
-	{
-		HUD->StartCountdown();
-		Print("Controller says: start countdown", 15.0f);
 	}
 }

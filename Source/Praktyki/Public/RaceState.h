@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
 #include "CPPUtils.h"
+#include "FinishInfo.h"
 #include "RaceState.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PRAKTYKI_API ARaceState : public AGameState
+class PRAKTYKI_API ARaceState : public AGameStateBase
 {
 	GENERATED_BODY()
 
@@ -22,7 +23,7 @@ public:
 	virtual void HandleBeginPlay() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION()
+	UFUNCTION(NetMulticast, Reliable)
 	void StartCountdown();
 
 	UPROPERTY(Replicated, BlueprintReadWrite)
@@ -30,6 +31,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
 	int32 MaxLaps = 3;
+
+	UPROPERTY(EditDefaultsOnly)
+	UPhysicalMaterial* OffTrackMaterial;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
 	int32 MaxCheckpointIndex;
@@ -43,6 +47,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	float CountdownLength = 3.0f;
 
-	UPROPERTY(BlueprintReadOnly, Replicated)
+	UPROPERTY(BlueprintReadOnly)
 	bool IsCountdownStarted = false;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	TArray<FFinishInfo> FinishTimes;
 };

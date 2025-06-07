@@ -32,5 +32,5 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
 	UStaticMeshComponent* CheckpointCollider;
-
+	
 };

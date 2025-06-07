@@ -67,10 +67,16 @@ public:
 	void JoinGame(FSearchResult SearchResult);
 
 	UFUNCTION(BlueprintCallable)
-	void FindSessions(bool IsLanQuery, int32 MaxSearchResults);
+	void FindGames(bool IsLanQuery, int32 MaxSearchResults);
 
 	UFUNCTION(BlueprintCallable)
 	void StartListenServer();
+
+	UFUNCTION(BlueprintCallable)
+	void LeaveGame();
+
+	UFUNCTION(BlueprintCallable)
+	void DestroyGame();
 
 	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
 	FOnSearchCompleted OnSearchCompleted;
@@ -81,6 +87,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	int32 ConnectedPlayersCount;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FString MainMenuMapName;
+
 private:
 	TSharedPtr<FOnlineSessionSearch> SearchSettings;
 	FOnFindSessionsCompleteDelegate SearchCompleteDelegate;
@@ -89,4 +98,7 @@ private:
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	FOnJoinSessionCompleteDelegate OnJoinSessionCompleteDelegate;
 	FDelegateHandle OnJoinSessionCompleteDelegateHandle;
+	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
+	FOnDestroySessionCompleteDelegate OnDestroySessionCompleteDelegate;
+	FDelegateHandle OnDestroySessionCompleteDelegateHandle;
 };

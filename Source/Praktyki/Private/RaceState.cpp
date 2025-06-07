@@ -4,11 +4,13 @@
 #include "RaceState.h"
 
 #include "HeadMountedDisplayTypes.h"
+#include "MainGameInstance.h"
 #include "PlayerScore.h"
 #include "RacerController.h"
 #include "RacerState.h"
 #include "Net/UnrealNetwork.h"
 #include "RacingGameMode.h"
+#include "Kismet/KismetStringLibrary.h"
 
 ARaceState::ARaceState()
 {
@@ -18,6 +20,14 @@ ARaceState::ARaceState()
 void ARaceState::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if(HasAuthority())
+	{
+		if(UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GetGameInstance()))
+		{
+			MaxLaps = MainGameInstance->MaxLaps;
+		}
+	}
 }
 
 void ARaceState::Tick(float DeltaSeconds)
@@ -54,14 +64,14 @@ void ARaceState::Tick(float DeltaSeconds)
 			RacersOrder = tmp;
 		}
 	}
+	Print("COUNTDOWN STARTED: " + UKismetStringLibrary::Conv_BoolToString(IsCountdownStarted), 0.0f, FColor::Red);
 	if(IsCountdownStarted && GetServerWorldTimeSeconds() > RaceStartTime)
 	{
+		Print("RACE START", 10.0f, FColor::Red);
 		for(APlayerState* PlayerState : PlayerArray)
 		{
-			if(ARacerPawn* RacerPawn = Cast<ARacerPawn>(PlayerState->GetPawn()))
-			{
-				RacerPawn->SetDrivingEnabled(true);
-			}
+			ARacerPawn* RacerPawn = Cast<ARacerPawn>(PlayerState->GetPawn());
+			RacerPawn->SetDrivingEnabled(true);
 		}
 		IsCountdownStarted = false;
 	}
@@ -84,10 +94,10 @@ void ARaceState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(ARaceState, MaxLaps);
 	DOREPLIFETIME(ARaceState, MaxCheckpointIndex);
 	DOREPLIFETIME(ARaceState, RaceStartTime);
-	DOREPLIFETIME(ARaceState, IsCountdownStarted);
+	DOREPLIFETIME(ARaceState, FinishTimes);
 }
 
-void ARaceState::StartCountdown()
+void ARaceState::StartCountdown_Implementation()
 {
 	RaceStartTime = GetServerWorldTimeSeconds() + PreRaceTime + CountdownLength;
 	IsCountdownStarted = true;
