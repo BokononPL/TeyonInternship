@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AutoDrivingComponent.h"
 #include "WheeledVehiclePawn.h"
 #include "CPPUtils.h"
 #include "PlayerScore.h"
@@ -31,6 +32,10 @@ public:
 	void SetupCarParts();
 
 	TObjectPtr<UChaosWheeledVehicleMovementComponent> VehicleMovementComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAutoDrivingComponent* AutoDrivingComponent;
+	
 	class ARacerState* RacerState = nullptr;
 
 #pragma region Inputs
@@ -225,6 +230,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cameras")
 	float MinCameraPitch;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	UAudioComponent* EngineSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	float EngineSoundPitchMin;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	float EngineSoundPitchMax;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<ARaceCheckpoint*> RaceCheckpoints;
 
@@ -237,6 +251,12 @@ public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated)
 	bool IsDrivingEnabled;
 
+	float RespawnAllowedAlpha = 0.0f;
+	bool IsRespawnAllowed = false;
+
 	UFUNCTION(BlueprintCallable)
 	bool CheckIsOffTrack();
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckAreWheelsOffGround();
 };

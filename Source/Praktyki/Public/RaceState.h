@@ -32,8 +32,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
 	int32 MaxLaps = 3;
 
+	//Currently only tarmac, but more would be supported
 	UPROPERTY(EditDefaultsOnly)
-	UPhysicalMaterial* OffTrackMaterial;
+	TArray<UPhysicalMaterial*> OnTrackMaterials;
+
+	//Currently only grass, but more would be supported
+	UPROPERTY(EditDefaultsOnly)
+	TArray<UPhysicalMaterial*> OffTrackMaterials;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
 	int32 MaxCheckpointIndex;

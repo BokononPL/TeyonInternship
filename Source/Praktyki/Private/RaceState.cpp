@@ -3,7 +3,6 @@
 
 #include "RaceState.h"
 
-#include "HeadMountedDisplayTypes.h"
 #include "MainGameInstance.h"
 #include "PlayerScore.h"
 #include "RacerController.h"
@@ -50,7 +49,7 @@ void ARaceState::Tick(float DeltaSeconds)
 								? RacerState->CurrentCheckpoint + 1
 								: 0]->GetActorLocation();
 						float Distance = FVector::Dist(RacerLocation, NextCheckpointLocation);
-						PlayerScores.Add(FPlayerScore(RacerState->GetUniqueId(), RacerState->CurrentLap,
+						PlayerScores.Add(FPlayerScore(RacerState->GetUniqueId(), RacerState->CurrentLap, RacerState->IsLapInvalidated,
 						                              RacerState->CurrentCheckpoint, Distance));
 					}
 				}
@@ -74,6 +73,17 @@ void ARaceState::Tick(float DeltaSeconds)
 			RacerPawn->SetDrivingEnabled(true);
 		}
 		IsCountdownStarted = false;
+
+		if(HasAuthority())
+		{
+			if(ARacingGameMode* Gamemode = Cast<ARacingGameMode>(GetWorld()->GetAuthGameMode()))
+			{
+				if(Gamemode->Bot)
+				{
+					Gamemode->Bot->SetDrivingEnabled(true);
+				}
+			}
+		}
 	}
 }
 

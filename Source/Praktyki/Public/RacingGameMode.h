@@ -7,6 +7,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "CPPUtils.h"
 #include "FinishInfo.h"
+#include "RacerPawn.h"
 #include "RacingGameMode.generated.h"
 
 /**
@@ -34,6 +35,7 @@ public:
 	int32 ExpectedPlayersCount;
 	TArray<class ARacerController*> PlayerControllers;
 	TArray<ARaceCheckpoint*> RaceCheckpoints;
+	ARacerPawn* Bot;
 
 private:
 	bool HasFirstPlayerConnected = false;

@@ -33,6 +33,23 @@ void ARacingGameMode::HandleStartingNewPlayer_Implementation(APlayerController* 
 			RestartPlayerAtPlayerStart(PlayerControllers[i], ChoosePlayerStart(PlayerControllers[i]));
 		}
 	}
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.Owner = this;
+	Bot = GetWorld()->SpawnActor<ARacerPawn>(DefaultPawnClass, ChoosePlayerStart(nullptr)->GetActorTransform(), SpawnParameters);
+	if(Bot)
+	{
+		Bot->SpawnDefaultController();
+		Bot->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+		if(UAutoDrivingComponent* AutoDrivingComponent = Bot->FindComponentByClass<UAutoDrivingComponent>())
+		{
+			AutoDrivingComponent->IsAutoDrivingEnabled = true;
+			AutoDrivingComponent->IsDebugEnabled = false;
+		}
+	}
+	else
+	{
+		Print("Could not spawn new bot", 20.0f);
+	}
 }
 
 void ARacingGameMode::BeginPlay()

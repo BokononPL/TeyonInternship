@@ -3,13 +3,16 @@
 
 #include "RacerPawn.h"
 
+#include "GeometryTypes.h"
 #include "RaceCheckpoint.h"
 #include "RacerController.h"
 #include "RacerState.h"
 #include "RaceState.h"
 #include "RacingGameMode.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/InputSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Net/UnrealNetwork.h"
 
@@ -21,6 +24,10 @@ ARacerPawn::ARacerPawn()
     Cameras.Add(InteriorCamera);
     
     VehicleMovementComponent = CastChecked<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
+    AutoDrivingComponent = CreateDefaultSubobject<UAutoDrivingComponent>("AutoDrivingComponent");
+
+    EngineSound = CreateDefaultSubobject<UAudioComponent>("Engine Sound");
+    EngineSound->SetupAttachment(GetMesh(), "EngineExtAudioSourceComponentSocket");
     
     GetMesh()->SetSimulatePhysics(true);
     GetMesh()->SetCollisionProfileName(FName("Vehicle"));
@@ -85,6 +92,11 @@ void ARacerPawn::Tick(float DeltaTime)
             }
         }
     }
+    if(RacerState)
+    {
+        float NewPitchMult = UKismetMathLibrary::MapRangeClamped(VehicleMovementComponent->GetEngineRotationSpeed(), 0.0f, 10000.0f, EngineSoundPitchMin, EngineSoundPitchMax);
+        EngineSound->SetPitchMultiplier(NewPitchMult);
+    }
     if(HasAuthority() && CheckIsOffTrack())
     {
         if(RacerState)
@@ -92,19 +104,32 @@ void ARacerPawn::Tick(float DeltaTime)
             RacerState->IsLapInvalidated = true;
         }
     }
+    if(HasAuthority())
+    {
+        if(CheckAreWheelsOffGround())
+        {
+            RespawnAllowedAlpha += GetWorld()->GetDeltaSeconds() * 0.2f;
+        }
+        else
+        {
+            RespawnAllowedAlpha -= GetWorld()->GetDeltaSeconds() * 1.0f;
+        }
+        RespawnAllowedAlpha = FMath::Clamp(RespawnAllowedAlpha, 0.0f, 1.0f);
+        if(RespawnAllowedAlpha >= 0.999f)
+        {
+            IsRespawnAllowed = true;
+        }
+        else if(RespawnAllowedAlpha <= 0.001f)
+        {
+            IsRespawnAllowed = false;
+        }
+    }
+    Print("Alpha: " + FString::SanitizeFloat(RespawnAllowedAlpha), 0.0f);
+    Print("Allowed: " + UKismetStringLibrary::Conv_BoolToString(IsRespawnAllowed), 0.0f);
     if(RacerState)
     {
         Print(UKismetStringLibrary::Conv_BoolToString(RacerState->IsLapInvalidated), 0.0f);
     }
-
-    // if(IsDrivingEnabled && !VehicleMovementComponent->GetUseAutoGears())
-    // {
-    //     Print("WTF", 10.0f);
-    // }
-    // if(!IsDrivingEnabled && VehicleMovementComponent->GetUseAutoGears())
-    // {
-    //     Print("NANI", 10.0f);
-    // }
 }
 
 void ARacerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -502,10 +527,32 @@ bool ARacerPawn::CheckIsOffTrack()
     if(!RaceState) return false;
     for(int i = 0; i < VehicleMovementComponent->GetNumWheels() - 1; i++)
     {
-        if(VehicleMovementComponent->GetWheelState(i).PhysMaterial != RaceState->OffTrackMaterial)
+        if(!RaceState->OffTrackMaterials.Contains(VehicleMovementComponent->GetWheelState(i).PhysMaterial))
         {
             return false;
         }
     }
     return true;
+}
+
+bool ARacerPawn::CheckAreWheelsOffGround()
+{
+    if(!VehicleMovementComponent) return false;
+    ARaceState* RaceState = Cast<ARaceState>(GetWorld()->GetGameState());
+    if(!RaceState) return false;
+    int WheelsOffGround = 0;
+    for(int i = 0; i < VehicleMovementComponent->GetNumWheels() - 1; i++)
+    {
+        if(!(RaceState->OffTrackMaterials.Contains(VehicleMovementComponent->GetWheelState(i).PhysMaterial)) &&
+            !(RaceState->OnTrackMaterials.Contains(VehicleMovementComponent->GetWheelState(i).PhysMaterial)))
+        {
+            WheelsOffGround++;
+            Print(UKismetStringLibrary::Conv_IntToString(WheelsOffGround), 0.0f, FColor::Red);
+        }
+        if(WheelsOffGround >= 2)
+        {
+            return true;
+        }
+    }
+    return false;
 }
