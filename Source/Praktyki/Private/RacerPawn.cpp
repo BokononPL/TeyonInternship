@@ -283,6 +283,9 @@ void ARacerPawn::SetupCarParts()
     FrontRightCaliper = CreateDefaultSubobject<UStaticMeshComponent>("Front Right Caliper");
     FrontRightCaliper->SetupAttachment(GetMesh(), "suspension_front_right");
 
+    FrontRightWheelBlur = CreateDefaultSubobject<UStaticMeshComponent>("Front Right Wheel Blur");
+    FrontRightWheelBlur->SetupAttachment(GetMesh(), "wheel_front_right_spin");
+
     FrontLeftWheel = CreateDefaultSubobject<UStaticMeshComponent>("Front Left Wheel");
     FrontLeftWheel->SetupAttachment(GetMesh(), "wheel_front_left_spin");
 
@@ -291,6 +294,9 @@ void ARacerPawn::SetupCarParts()
 
     FrontLeftCaliper = CreateDefaultSubobject<UStaticMeshComponent>("Front Left Caliper");
     FrontLeftCaliper->SetupAttachment(GetMesh(), "suspension_front_left");
+
+    FrontLeftWheelBlur = CreateDefaultSubobject<UStaticMeshComponent>("Front Left Wheel Blur");
+    FrontLeftWheelBlur->SetupAttachment(GetMesh(), "wheel_front_left_spin");
 
     RearRightWheel = CreateDefaultSubobject<UStaticMeshComponent>("Rear Right Wheel");
     RearRightWheel->SetupAttachment(GetMesh(), "wheel_back_right_spin");
@@ -301,6 +307,9 @@ void ARacerPawn::SetupCarParts()
     RearRightCaliper = CreateDefaultSubobject<UStaticMeshComponent>("Rear Right Caliper");
     RearRightCaliper->SetupAttachment(GetMesh(), "suspension_back_right");
 
+    RearRightWheelBlur = CreateDefaultSubobject<UStaticMeshComponent>("Rear Right Wheel Blur");
+    RearRightWheelBlur->SetupAttachment(GetMesh(), "wheel_back_right_spin");
+
     RearLeftWheel = CreateDefaultSubobject<UStaticMeshComponent>("Rear Left Wheel");
     RearLeftWheel->SetupAttachment(GetMesh(), "wheel_back_left_spin");
 
@@ -309,6 +318,9 @@ void ARacerPawn::SetupCarParts()
 
     RearLeftCaliper = CreateDefaultSubobject<UStaticMeshComponent>("Rear Left Caliper");
     RearLeftCaliper->SetupAttachment(GetMesh(), "suspension_back_left");
+
+    RearLeftWheelBlur = CreateDefaultSubobject<UStaticMeshComponent>("Rear Left Wheel Blur");
+    RearLeftWheelBlur->SetupAttachment(GetMesh(), "wheel_back_left_spin");
 
     Windshield = CreateDefaultSubobject<UStaticMeshComponent>("Windshield");
     Windshield->SetupAttachment(GetMesh());

@@ -170,7 +170,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* FrontRightCaliper;
-
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
+	UStaticMeshComponent* FrontRightWheelBlur;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* FrontLeftWheel;
 
@@ -179,6 +182,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* FrontLeftCaliper;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
+	UStaticMeshComponent* FrontLeftWheelBlur;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* RearRightWheel;
@@ -190,6 +196,9 @@ public:
 	UStaticMeshComponent* RearRightCaliper;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
+	UStaticMeshComponent* RearRightWheelBlur;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* RearLeftWheel;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
@@ -197,6 +206,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* RearLeftCaliper;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
+	UStaticMeshComponent* RearLeftWheelBlur;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "CarParts")
 	UStaticMeshComponent* Windshield;

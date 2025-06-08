@@ -36,6 +36,7 @@ void ASplineMeshPlacer::OnConstruction(const FTransform& Transform)
 		float Distance = i * DistanceBetweenMeshes;
 		InstanceTransform.SetLocation(Spline->GetLocationAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::Local));
 		InstanceTransform.SetRotation(FQuat(UKismetMathLibrary::MakeRotFromX(Spline->GetTangentAtDistanceAlongSpline(Distance, ESplineCoordinateSpace::Local))));
+		InstanceTransform  = PlacedMeshTransform * InstanceTransform;
 		InstancedMesh->AddInstance(InstanceTransform);
 	}
 }

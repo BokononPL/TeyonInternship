@@ -27,6 +27,9 @@ public:
 	UStaticMesh* MeshToPlace;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform PlacedMeshTransform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Interval;
 
 	float DistanceBetweenMeshes;
