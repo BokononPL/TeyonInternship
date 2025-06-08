@@ -90,6 +90,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FString MainMenuMapName;
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 MaxPlayersCount;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool ShouldFillWithBots;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 TimeLimit;
+
 private:
 	TSharedPtr<FOnlineSessionSearch> SearchSettings;
 	FOnFindSessionsCompleteDelegate SearchCompleteDelegate;

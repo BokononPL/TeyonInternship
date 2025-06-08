@@ -495,10 +495,10 @@ void ARacerPawn::CheckpointCollision(AActor* ThisActor, AActor* OtherActor)
                                 if(HasAuthority() && RacerState->CurrentLap == RaceState->MaxLaps)
                                 {
                                     RaceState->FinishTimes.Add(FFinishInfo(RacerState->GetUniqueId(), RacerState->LapTimes.Last()));
-                                    //SetDrivingEnabled(false);
+                                    AutoDrivingComponent->IsAutoDrivingEnabled = true;
                                     if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
                                     {
-                                        RacerController->OnRaceFinished(RaceState->FinishTimes.Num());
+                                        RacerController->Client_OnRaceFinished(RaceState->FinishTimes.Num());
                                     }
                                 }
                             }

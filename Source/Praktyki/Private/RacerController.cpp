@@ -70,7 +70,7 @@ void ARacerController::AddLapTime_Implementation(int32 LapNumber, float LapTime)
 	}
 }
 
-void ARacerController::OnRaceFinished_Implementation(int32 Position)
+void ARacerController::Client_OnRaceFinished_Implementation(int32 Position)
 {
 	UWidgetLayoutLibrary::RemoveAllWidgets(GetWorld());
 	GameOverWidget = CreateWidget<UGameOverWidget>(this, GameOverWidget_Class);
@@ -79,7 +79,6 @@ void ARacerController::OnRaceFinished_Implementation(int32 Position)
 	{
 		GameOverWidget->SetValues(Position, RaceState->FinishTimes);
 	}
-	PlayerVehiclePawn->SetDrivingEnabled(false);
 	FInputModeUIOnly InputMode;
 	SetInputMode(InputMode);
 	SetShowMouseCursor(true);

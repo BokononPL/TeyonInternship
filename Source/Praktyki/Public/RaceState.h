@@ -57,4 +57,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	TArray<FFinishInfo> FinishTimes;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	int32 TimeLimit;
 };

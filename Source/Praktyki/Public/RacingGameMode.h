@@ -27,7 +27,6 @@ public:
 	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 
 	void OnPlayerBecomesReady();
-	void OnPlayerFinishedRace(FFinishInfo FinishInfo);
 
 	UFUNCTION(BlueprintCallable)
 	void RestartRace();
@@ -35,7 +34,7 @@ public:
 	int32 ExpectedPlayersCount;
 	TArray<class ARacerController*> PlayerControllers;
 	TArray<ARaceCheckpoint*> RaceCheckpoints;
-	ARacerPawn* Bot;
+	TArray<class ARaceBotController*> Bots; 
 
 private:
 	bool HasFirstPlayerConnected = false;
@@ -43,4 +42,5 @@ private:
 	bool HasInitializedStartsArray = false;
 	TArray<AActor*> StartsArray;
 	int32 UsedStartsCount = 0;
+	TArray<FString> BotNames = {"BotAlbert", "BotBetty", "BotCindy", "BotDamian", "BotEddy", "BotFrancis", "BotGerard", "BotHarold"};
 };

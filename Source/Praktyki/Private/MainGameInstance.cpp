@@ -22,6 +22,9 @@ void UMainGameInstance::TravelToMap(FString MapName)
 	{
 		MaxLaps = GameMode->MaxLaps;
 		ConnectedPlayersCount = GameMode->MainMenuControllers.Num();
+		MaxPlayersCount = GameMode->MaxPlayersCount;
+		ShouldFillWithBots = GameMode->ShouldFillWithBots;
+		TimeLimit = GameMode->TimeLimit;
 	}
 	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), "servertravel " + MapName, UGameplayStatics::GetPlayerController(GetWorld(),0));
 }

@@ -23,6 +23,26 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TArray<AMainMenuController*> MainMenuControllers;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, Setter = SetMaxLaps)
 	int32 MaxLaps;
+
+	UPROPERTY(BlueprintReadWrite, Setter = SetTimeLimit)
+	int32 TimeLimit;
+
+	UPROPERTY(BlueprintReadWrite, Setter = SetMaxPlayersCount)
+	int32 MaxPlayersCount;
+
+	UPROPERTY(BlueprintReadWrite, Setter = SetShouldFillWithBots)
+	bool ShouldFillWithBots;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdatePlayerNames();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	TArray<FString> GetPlayerNames();
+
+	void SetMaxLaps(int32 NewMaxLaps);
+	void SetTimeLimit(int32 NewTimeLimit);
+	void SetMaxPlayersCount(int32 NewMaxPlayersCount);
+	void SetShouldFillWithBots(bool NewShouldFillWithBots);
 };

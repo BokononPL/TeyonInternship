@@ -58,7 +58,7 @@ public:
 	void Server_NotifyIsReady();
 
 	UFUNCTION(BlueprintCallable, Client, Reliable)
-	void OnRaceFinished(int32 Position);
+	void Client_OnRaceFinished(int32 Position);
 	
 	bool IsReady = false;
 };

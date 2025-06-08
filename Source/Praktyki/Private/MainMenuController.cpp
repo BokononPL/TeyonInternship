@@ -3,6 +3,7 @@
 
 #include "MainMenuController.h"
 
+#include "MainMenuGameMode.h"
 #include "RacerState.h"
 #include "Blueprint/UserWidget.h"
 
@@ -12,13 +13,38 @@ void AMainMenuController::ShowMainMenu()
 	{
 		if(MainMenuWidgetClass)
 		{
-			MainMenuWidget = CreateWidget(this, MainMenuWidgetClass);
+			MainMenuWidget = Cast<UMainMenuWidget>(CreateWidget(this, MainMenuWidgetClass));
 		}
 	}
 	MainMenuWidget->AddToViewport();
 	SetShowMouseCursor(true);
 	FInputModeUIOnly InputMode;
 	SetInputMode(InputMode);
+}
+
+void AMainMenuController::ClientUpdateTimeLimit_Implementation(int32 TimeLimit)
+{
+	MainMenuWidget->UpdateTimeLimit(TimeLimit);
+}
+
+void AMainMenuController::ClientUpdateMaxLaps_Implementation(int32 MaxLaps)
+{
+	MainMenuWidget->UpdateMaxLaps(MaxLaps);
+}
+
+void AMainMenuController::ClientUpdateMaxPlayers_Implementation(int32 MaxPlayers)
+{
+	MainMenuWidget->UpdateMaxPlayers(MaxPlayers);
+}
+
+void AMainMenuController::ClientUpdateShouldFillWithBots_Implementation(bool ShouldFill)
+{
+	MainMenuWidget->UpdateShouldFillWithBots(ShouldFill);
+}
+
+void AMainMenuController::ClientUpdatePlayerNames_Implementation(const TArray<FString>& Names)
+{
+	MainMenuWidget->UpdatePlayerNames(Names);
 }
 
 void AMainMenuController::UpdateCarColor(bool ShouldUseDefaultPaintjob, FLinearColor Color)
@@ -40,20 +66,36 @@ void AMainMenuController::Server_UpdateCarColor_Implementation(bool ShouldUseDef
 	}
 }
 
-void AMainMenuController::UpdatePlayerName(const FString& Name)
+void AMainMenuController::SetPlayerName(const FString& Name)
 {
 	if(ARacerState* RacerState = GetPlayerState<ARacerState>())
 	{
 		RacerState->RacerInfo.PlayerName = Name;
 	}
-	Server_UpdatePlayerName(Name);
+	Server_SetPlayerName(Name);
 }
 
-void AMainMenuController::Server_UpdatePlayerName_Implementation(const FString& Name)
+void AMainMenuController::Server_RequestMainMenuUpdate_Implementation()
+{
+	if(AMainMenuGameMode* MainMenuGameMode = Cast<AMainMenuGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		ClientUpdateMaxLaps(MainMenuGameMode->MaxLaps);
+		ClientUpdateTimeLimit(MainMenuGameMode->TimeLimit);
+		ClientUpdateMaxPlayers(MainMenuGameMode->MaxPlayersCount);
+		ClientUpdateShouldFillWithBots(MainMenuGameMode->ShouldFillWithBots);
+		MainMenuGameMode->UpdatePlayerNames();
+	}
+}
+
+void AMainMenuController::Server_SetPlayerName_Implementation(const FString& Name)
 {
 	if(ARacerState* RacerState = GetPlayerState<ARacerState>())
 	{
 		RacerState->RacerInfo.PlayerName = Name;
+		if(AMainMenuGameMode* MainMenuGameMode = Cast<AMainMenuGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			MainMenuGameMode->UpdatePlayerNames();
+		}
 	}
 }
 

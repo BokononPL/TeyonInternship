@@ -6,9 +6,11 @@
 #include <string>
 
 #include "MainGameInstance.h"
+#include "RaceBotController.h"
 #include "RacerController.h"
 #include "RacerState.h"
 #include "RaceState.h"
+#include "Algo/RandomShuffle.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetStringLibrary.h"
@@ -25,30 +27,37 @@ void ARacingGameMode::HandleStartingNewPlayer_Implementation(APlayerController* 
 	PlayerControllers.Add(Cast<ARacerController>(NewPlayer));
 
 	HasFirstPlayerConnected = true;
-	
-	if(PlayerControllers.Num() == ExpectedPlayersCount) //all expected players have connected
+	UMainGameInstance* GameInstance = Cast<UMainGameInstance>(GetWorld()->GetGameInstance());
+    
+	if(PlayerControllers.Num() == GameInstance->ConnectedPlayersCount) //all expected players have connected
 	{
+		Algo::RandomShuffle(PlayerControllers);
 		for(int i = 0; i < PlayerControllers.Num(); i++)
 		{
 			RestartPlayerAtPlayerStart(PlayerControllers[i], ChoosePlayerStart(PlayerControllers[i]));
 		}
-	}
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.Owner = this;
-	Bot = GetWorld()->SpawnActor<ARacerPawn>(DefaultPawnClass, ChoosePlayerStart(nullptr)->GetActorTransform(), SpawnParameters);
-	if(Bot)
-	{
-		Bot->SpawnDefaultController();
-		Bot->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-		if(UAutoDrivingComponent* AutoDrivingComponent = Bot->FindComponentByClass<UAutoDrivingComponent>())
+        
+		if(GameInstance->ShouldFillWithBots)
 		{
-			AutoDrivingComponent->IsAutoDrivingEnabled = true;
-			AutoDrivingComponent->IsDebugEnabled = false;
+			Algo::RandomShuffle(BotNames);
+			int32 BotsAmount = GameInstance->MaxPlayersCount - GameInstance->ConnectedPlayersCount;
+			for(int32 i = 0; i < BotsAmount; i++)
+			{
+				ARacerPawn* NewBot = GetWorld()->SpawnActorDeferred<ARacerPawn>(DefaultPawnClass, FTransform::Identity, this);
+				NewBot->SpawnDefaultController();
+				if(ARaceBotController* BotController = Cast<ARaceBotController>(NewBot->GetController()))
+				{
+					BotController->BotName = BotNames[i];
+					Bots.Add(BotController);
+				}
+				NewBot->FinishSpawning(ChoosePlayerStart(NewBot->GetController())->GetTransform());
+				if(UAutoDrivingComponent* AutoDrivingComponent = NewBot->FindComponentByClass<UAutoDrivingComponent>())
+				{
+					AutoDrivingComponent->IsAutoDrivingEnabled = true;
+					AutoDrivingComponent->IsDebugEnabled = false;
+				}
+			}
 		}
-	}
-	else
-	{
-		Print("Could not spawn new bot", 20.0f);
 	}
 }
 
@@ -85,23 +94,23 @@ void ARacingGameMode::Tick(float DeltaSeconds)
 
 AActor* ARacingGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	//return Super::ChoosePlayerStart_Implementation(Player);
-	if(!HasInitializedStartsArray)
+	if(!Player) return nullptr;
+    
+	if(!Player->StartSpot.IsValid())
 	{
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), StartsArray);
-		HasInitializedStartsArray = true;
+		if(!HasInitializedStartsArray)
+		{
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), StartsArray);
+			HasInitializedStartsArray = true;
+		}
+		if(UsedStartsCount < StartsArray.Num())
+		{
+			Player->StartSpot = StartsArray[UsedStartsCount];
+			UsedStartsCount++;
+		}
 	}
-	AActor* OutStart = nullptr;
-	if(UsedStartsCount < StartsArray.Num())
-	{
-		OutStart = StartsArray[UsedStartsCount];
-		UsedStartsCount++;
-	}
-	else
-	{
-		Print("Not enough start spots!", 15.0f, FColor::Red);
-	}
-	return OutStart;
+    
+	return Player->StartSpot.Get();
 }
 
 void ARacingGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
@@ -122,11 +131,6 @@ void ARacingGameMode::OnPlayerBecomesReady()
 	{
 		RaceState->StartCountdown();
 	}
-}
-
-void ARacingGameMode::OnPlayerFinishedRace(FFinishInfo FinishInfo)
-{
-	
 }
 
 void ARacingGameMode::RestartRace()

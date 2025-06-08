@@ -5,6 +5,7 @@
 
 #include "MainGameInstance.h"
 #include "PlayerScore.h"
+#include "RaceBotController.h"
 #include "RacerController.h"
 #include "RacerState.h"
 #include "Net/UnrealNetwork.h"
@@ -25,6 +26,7 @@ void ARaceState::BeginPlay()
 		if(UMainGameInstance* MainGameInstance = Cast<UMainGameInstance>(GetGameInstance()))
 		{
 			MaxLaps = MainGameInstance->MaxLaps;
+			TimeLimit = MainGameInstance->TimeLimit;
 		}
 	}
 }
@@ -62,6 +64,10 @@ void ARaceState::Tick(float DeltaSeconds)
 			}
 			RacersOrder = tmp;
 		}
+		if(GetServerWorldTimeSeconds() - RaceStartTime > TimeLimit * 60.0f)
+		{
+			// end race due to time limit
+		}
 	}
 	Print("COUNTDOWN STARTED: " + UKismetStringLibrary::Conv_BoolToString(IsCountdownStarted), 0.0f, FColor::Red);
 	if(IsCountdownStarted && GetServerWorldTimeSeconds() > RaceStartTime)
@@ -78,9 +84,9 @@ void ARaceState::Tick(float DeltaSeconds)
 		{
 			if(ARacingGameMode* Gamemode = Cast<ARacingGameMode>(GetWorld()->GetAuthGameMode()))
 			{
-				if(Gamemode->Bot)
+				for(ARaceBotController* Bot : Gamemode->Bots)
 				{
-					Gamemode->Bot->SetDrivingEnabled(true);
+					Cast<ARacerPawn>(Bot->GetPawn())->SetDrivingEnabled(true);
 				}
 			}
 		}

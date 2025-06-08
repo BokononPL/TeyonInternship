@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MainMenuWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "MainMenuController.generated.h"
 
@@ -21,6 +22,21 @@ public:
 	UFUNCTION(BlueprintCallable, Client, Reliable)
 	void ClientShowMainMenu();
 
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdateMaxLaps(int32 MaxLaps);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdateTimeLimit(int32 TimeLimit);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdateMaxPlayers(int32 MaxPlayers);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdateShouldFillWithBots(bool ShouldFill);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdatePlayerNames(const TArray<FString>& Names);
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateCarColor(bool ShouldUseDefaultPaintjob, FLinearColor Color);
 
@@ -28,14 +44,17 @@ public:
 	void Server_UpdateCarColor(bool ShouldUseDefaultPaintjob, FLinearColor Color);
 
 	UFUNCTION(BlueprintCallable)
-	void UpdatePlayerName(const FString& Name);
+	void SetPlayerName(const FString& Name);
 
 	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void Server_UpdatePlayerName(const FString& Name);
+	void Server_SetPlayerName(const FString& Name);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Server_RequestMainMenuUpdate();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+	TSubclassOf<UMainMenuWidget> MainMenuWidgetClass;
 
 	UPROPERTY(BlueprintReadWrite)
-	UUserWidget* MainMenuWidget;
+	UMainMenuWidget* MainMenuWidget;
 };
