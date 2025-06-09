@@ -4,7 +4,7 @@
 ### Features:
 - Fully replicated multiplayer racing (NOTE: for full functionality launch in standalone mode or packaged build, not PIE)
 
-- Bots
+- Bots!
 
 - Recording lap times
 
