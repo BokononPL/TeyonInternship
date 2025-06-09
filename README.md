@@ -2,7 +2,7 @@
 ## Racing game made in 14 days for Teyon Internship application
 
 ### Features:
-- Fully replicated multiplayer racing
+- Fully replicated multiplayer racing (NOTE: for full functionality launch in standalone mode or packaged build, not PIE)
 
 - Bots
 
