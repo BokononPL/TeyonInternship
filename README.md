@@ -10,6 +10,8 @@
 
 - Invalidating lap times for driving outside the track (toggled on or off in settings)
 
+- Car customization
+
 - Turn indicators ;)
 
 - Support for gamepads and steering wheels (NOTE: this feature is completely untested because I didn't have those input devices to test it)
