@@ -47,6 +47,16 @@ void AMainMenuController::ClientUpdatePlayerNames_Implementation(const TArray<FS
 	MainMenuWidget->UpdatePlayerNames(Names);
 }
 
+void AMainMenuController::ClientUpdateShouldInvalidateLaps_Implementation(bool ShouldInvalidate)
+{
+	MainMenuWidget->UpdateShouldInvalidateLaps(ShouldInvalidate);
+}
+
+void AMainMenuController::ClientUpdateGameType_Implementation(const GameTypeEnum& GameType)
+{
+	MainMenuWidget->UpdateGameType(GameType);
+}
+
 void AMainMenuController::UpdateCarColor(bool ShouldUseDefaultPaintjob, FLinearColor Color)
 {
 	if(ARacerState* RacerState = GetPlayerState<ARacerState>())
@@ -83,6 +93,7 @@ void AMainMenuController::Server_RequestMainMenuUpdate_Implementation()
 		ClientUpdateTimeLimit(MainMenuGameMode->TimeLimit);
 		ClientUpdateMaxPlayers(MainMenuGameMode->MaxPlayersCount);
 		ClientUpdateShouldFillWithBots(MainMenuGameMode->ShouldFillWithBots);
+		ClientUpdateGameType(MainMenuGameMode->GameType);
 		MainMenuGameMode->UpdatePlayerNames();
 	}
 }

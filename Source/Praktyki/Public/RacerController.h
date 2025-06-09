@@ -21,7 +21,10 @@ class PRAKTYKI_API ARacerController : public APlayerController
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
-	UInputMappingContext* MappingContext;
+	UInputMappingContext* DefaultMappingContext;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+	UInputMappingContext* SteeringWheelMappingContext;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Interface")
 	UHUD_Widget* HUD;
@@ -58,7 +61,7 @@ public:
 	void Server_NotifyIsReady();
 
 	UFUNCTION(BlueprintCallable, Client, Reliable)
-	void Client_OnRaceFinished(int32 Position);
+	void Client_OnRaceFinished(int32 Position, const TArray<float>& LapTimes);
 	
 	bool IsReady = false;
 };

@@ -18,6 +18,9 @@ void ARacerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 	DOREPLIFETIME(ARacerState, CurrentCheckpoint);
 	DOREPLIFETIME(ARacerState, RacerInfo)
 	DOREPLIFETIME(ARacerState, IsLapInvalidated);
+	DOREPLIFETIME(ARacerState, LapTimes);
+	DOREPLIFETIME(ARacerState, BestLapTime);
+	DOREPLIFETIME(ARacerState, CurrentLapStartTime)
 }
 
 void ARacerState::CopyProperties(APlayerState* PlayerState)
@@ -30,15 +33,6 @@ void ARacerState::CopyProperties(APlayerState* PlayerState)
 void ARacerState::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if(GetPawn())
-	{
-		Print("Pawn: " + GetPawn()->GetName(), 0.0f);
-	}
-	else
-	{
-		Print("No Pawn", 0.0f);
-	}
 }
 
 void ARacerState::SetCurrentLap(int32 LapIndex)

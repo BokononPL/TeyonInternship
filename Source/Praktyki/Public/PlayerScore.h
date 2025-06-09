@@ -9,9 +9,9 @@ struct PRAKTYKI_API FPlayerScore
 public:
 	FPlayerScore(){};
 	
-	FPlayerScore(FUniqueNetIdRepl PlayerNetId, int32 LapNumber, bool IsLapInvalidated, int32 CheckpointNumber, float DistanceToNextCheckpoint)
+	FPlayerScore(FString Name, int32 LapNumber, bool IsLapInvalidated, int32 CheckpointNumber, float DistanceToNextCheckpoint)
 	{
-		this->PlayerNetId = PlayerNetId;
+		this->Name = Name;
 		this->LapNumber = LapNumber;
 		this->IsLapInvalidated = IsLapInvalidated;
 		this->CheckpointNumber = CheckpointNumber;
@@ -27,7 +27,7 @@ public:
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FUniqueNetIdRepl PlayerNetId;
+	FString Name;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 LapNumber;

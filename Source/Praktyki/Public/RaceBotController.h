@@ -17,4 +17,16 @@ class PRAKTYKI_API ARaceBotController : public AAIController
 public:
 	UPROPERTY(BlueprintReadWrite)
 	FString BotName;
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 CurrentLap;
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 CurrentCheckpoint;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool IsLapInvalidated;
+
+	UPROPERTY(BlueprintReadWrite)
+	TArray<float> LapTimes;
 };

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameTypeEnum.h"
 #include "Engine/GameInstance.h"
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystemUtils.h"
@@ -22,17 +23,9 @@ public:
 	FSearchResult(FOnlineSessionSearchResult SearchResult)
 	{
 		Ping = SearchResult.PingInMs;
-		MaxPlayers = SearchResult.Session.SessionSettings.NumPublicConnections;
-		ConnectedPlayers = SearchResult.Session.SessionSettings.NumPublicConnections - SearchResult.Session.NumOpenPublicConnections;
 		HostName = SearchResult.Session.OwningUserName;
 		this->SearchResult = SearchResult;
 	}
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int32 ConnectedPlayers;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	int32 MaxPlayers;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 Ping;
@@ -97,7 +90,13 @@ public:
 	bool ShouldFillWithBots;
 
 	UPROPERTY(BlueprintReadOnly)
+	bool ShouldInvalidateLaps;
+
+	UPROPERTY(BlueprintReadOnly)
 	int32 TimeLimit;
+
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<GameTypeEnum> GameType;
 
 private:
 	TSharedPtr<FOnlineSessionSearch> SearchSettings;

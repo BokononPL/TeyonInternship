@@ -35,7 +35,13 @@ public:
 	void ClientUpdateShouldFillWithBots(bool ShouldFill);
 
 	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdateShouldInvalidateLaps(bool ShouldFill);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
 	void ClientUpdatePlayerNames(const TArray<FString>& Names);
+
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void ClientUpdateGameType(const GameTypeEnum& GameType);
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateCarColor(bool ShouldUseDefaultPaintjob, FLinearColor Color);

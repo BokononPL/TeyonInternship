@@ -41,8 +41,11 @@ public:
 #pragma region Inputs
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Input")
-	UInputAction* Throttle_Action;
+	UInputAction* Drive_Action;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Input")
+	UInputAction* Throttle_Action;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Input")
 	UInputAction* Brake_Action;
 
@@ -66,8 +69,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Input")
 	UInputAction* OpenMenu_Action;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Configuration|Input")
+	UInputAction* Respawn_Action;
 	
 protected:
+	void Drive(const FInputActionValue& Value);
 	void Throttle(const FInputActionValue& Value);
 	void Brake(const FInputActionValue& Value);
 	void HandBrakeStarted(const FInputActionValue& Value);
@@ -78,6 +85,7 @@ protected:
 	void ToggleLeftTurnIndicator(const FInputActionValue& Value);
 	void ToggleCamera(const FInputActionValue& Value);
 	void OpenMenu(const FInputActionValue& Value);
+	void RespawnVehicle(const FInputActionValue& Value);
 
 #pragma endregion
 	
@@ -87,6 +95,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetTurnIndicator(float Value);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRespawnVehicle();
 
 private:
 	TArray<UCameraComponent*> Cameras;
@@ -264,7 +275,13 @@ public:
 	bool IsDrivingEnabled;
 
 	float RespawnAllowedAlpha = 0.0f;
+	float BotStuckAlpha = 0.0f;
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated)
 	bool IsRespawnAllowed = false;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated)
+	bool IsBotRespawnAllowed = false;
 
 	UFUNCTION(BlueprintCallable)
 	bool CheckIsOffTrack();

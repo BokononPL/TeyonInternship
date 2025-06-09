@@ -8,14 +8,14 @@ struct PRAKTYKI_API FFinishInfo
 
 public:
 	FFinishInfo(){};
-	FFinishInfo(FUniqueNetIdRepl PlayerNetId, float FinishTime)
+	FFinishInfo(FString Name, float FinishTime)
 	{
-		this->PlayerNetId = PlayerNetId;
+		this->Name = Name;
 		this->FinishTime = FinishTime;
 	};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FUniqueNetIdRepl PlayerNetId;
+	FString Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float FinishTime;

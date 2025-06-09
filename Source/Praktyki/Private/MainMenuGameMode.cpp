@@ -22,6 +22,27 @@ void AMainMenuGameMode::HandleStartingNewPlayer_Implementation(APlayerController
 	}
 }
 
+void AMainMenuGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+	FString& ErrorMessage)
+{
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+
+	if(MainMenuControllers.Num() >= MaxPlayersCount)
+	{
+		ErrorMessage = "The lobby is full!";
+	}
+}
+
+void AMainMenuGameMode::Logout(AController* Exiting)
+{
+	Super::Logout(Exiting);
+	if(AMainMenuController* MainMenuController = Cast<AMainMenuController>(Exiting))
+	{
+		MainMenuControllers.Remove(MainMenuController);
+	}
+	UpdatePlayerNames();
+}
+
 void AMainMenuGameMode::UpdatePlayerNames()
 {
 	TArray<FString> PlayerNames = GetPlayerNames();
@@ -77,5 +98,23 @@ void AMainMenuGameMode::SetShouldFillWithBots(bool NewShouldFillWithBots)
 	for(AMainMenuController* MainMenuController : MainMenuControllers)
 	{
 		MainMenuController->ClientUpdateShouldFillWithBots(NewShouldFillWithBots);
+	}
+}
+
+void AMainMenuGameMode::SetShouldInvalidateLaps(bool NewShouldInvalidateLaps)
+{
+	ShouldInvalidateLaps = NewShouldInvalidateLaps;
+	for(AMainMenuController* MainMenuController : MainMenuControllers)
+	{
+		MainMenuController->ClientUpdateShouldInvalidateLaps(NewShouldInvalidateLaps);
+	}
+}
+
+void AMainMenuGameMode::SetGameType(const GameTypeEnum& NewGameType)
+{
+	GameType = NewGameType;
+	for(AMainMenuController* MainMenuController : MainMenuControllers)
+	{
+		MainMenuController->ClientUpdateGameType(NewGameType);
 	}
 }

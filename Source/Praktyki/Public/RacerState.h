@@ -47,4 +47,10 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	TArray<float> LapTimes;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	float BestLapTime = -1;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	float CurrentLapStartTime;
 };

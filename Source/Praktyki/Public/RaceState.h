@@ -6,6 +6,7 @@
 #include "GameFramework/GameState.h"
 #include "CPPUtils.h"
 #include "FinishInfo.h"
+#include "GameTypeEnum.h"
 #include "RaceState.generated.h"
 
 /**
@@ -27,7 +28,7 @@ public:
 	void StartCountdown();
 
 	UPROPERTY(Replicated, BlueprintReadWrite)
-	TArray<FUniqueNetIdRepl> RacersOrder;
+	TArray<FString> RacersOrder;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
 	int32 MaxLaps = 3;
@@ -47,7 +48,7 @@ public:
 	float RaceStartTime;
 
 	UPROPERTY(BlueprintReadOnly)
-	float PreRaceTime = 5.0f;
+	float PreRaceTime = 3.0f;
 
 	UPROPERTY(BlueprintReadOnly)
 	float CountdownLength = 3.0f;
@@ -55,9 +56,18 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool IsCountdownStarted = false;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool ShouldInvalidateLaps = false;
+
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	TArray<FFinishInfo> FinishTimes;
 
 	UPROPERTY(BlueprintReadOnly, Replicated)
 	int32 TimeLimit;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	TEnumAsByte<GameTypeEnum> GameType;
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	bool IsRaceOver = false;
 };

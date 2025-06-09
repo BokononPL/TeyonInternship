@@ -19,6 +19,8 @@ class PRAKTYKI_API AMainMenuGameMode : public AGameModeBase
 public:
 	virtual void BeginPlay() override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
+	virtual void Logout(AController* Exiting) override;
 
 	UPROPERTY(BlueprintReadWrite)
 	TArray<AMainMenuController*> MainMenuControllers;
@@ -34,6 +36,12 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Setter = SetShouldFillWithBots)
 	bool ShouldFillWithBots;
+	
+	UPROPERTY(BlueprintReadWrite, Setter = SetShouldInvalidateLaps)
+	bool ShouldInvalidateLaps;
+
+	UPROPERTY(BlueprintReadWrite, Setter = SetGameType)
+	TEnumAsByte<GameTypeEnum> GameType;
 
 	UFUNCTION(BlueprintCallable)
 	void UpdatePlayerNames();
@@ -45,4 +53,6 @@ public:
 	void SetTimeLimit(int32 NewTimeLimit);
 	void SetMaxPlayersCount(int32 NewMaxPlayersCount);
 	void SetShouldFillWithBots(bool NewShouldFillWithBots);
+	void SetShouldInvalidateLaps(bool NewShouldInvalidateLaps);
+	void SetGameType(const GameTypeEnum& NewGameType);
 };

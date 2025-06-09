@@ -4,6 +4,7 @@
 #include "RacerPawn.h"
 
 #include "GeometryTypes.h"
+#include "RaceBotController.h"
 #include "RaceCheckpoint.h"
 #include "RacerController.h"
 #include "RacerState.h"
@@ -94,14 +95,17 @@ void ARacerPawn::Tick(float DeltaTime)
     }
     if(RacerState)
     {
-        float NewPitchMult = UKismetMathLibrary::MapRangeClamped(VehicleMovementComponent->GetEngineRotationSpeed(), 0.0f, 10000.0f, EngineSoundPitchMin, EngineSoundPitchMax);
+        float NewPitchMult = UKismetMathLibrary::MapRangeClamped(VehicleMovementComponent->GetEngineRotationSpeed(), 0.0f, 5000.0f, EngineSoundPitchMin, EngineSoundPitchMax);
         EngineSound->SetPitchMultiplier(NewPitchMult);
     }
-    if(HasAuthority() && CheckIsOffTrack())
+    if(HasAuthority() && RacerState && CheckIsOffTrack())
     {
-        if(RacerState)
+        if(ARaceState* RaceState = Cast<ARaceState>(GetWorld()->GetGameState()))
         {
-            RacerState->IsLapInvalidated = true;
+            if(RaceState->ShouldInvalidateLaps)
+            {
+                RacerState->IsLapInvalidated = true;
+            }
         }
     }
     if(HasAuthority())
@@ -123,12 +127,32 @@ void ARacerPawn::Tick(float DeltaTime)
         {
             IsRespawnAllowed = false;
         }
-    }
-    Print("Alpha: " + FString::SanitizeFloat(RespawnAllowedAlpha), 0.0f);
-    Print("Allowed: " + UKismetStringLibrary::Conv_BoolToString(IsRespawnAllowed), 0.0f);
-    if(RacerState)
-    {
-        Print(UKismetStringLibrary::Conv_BoolToString(RacerState->IsLapInvalidated), 0.0f);
+        if(ARaceBotController* RBC = Cast<ARaceBotController>(GetController()))
+        {
+            if(FMath::Abs(VehicleMovementComponent->GetForwardSpeed()) < 50.0f)
+            {
+                if(ARaceState* RaceState = Cast<ARaceState>(GetWorld()->GetGameState()))
+                {
+                    if(RaceState->GetServerWorldTimeSeconds() > RaceState->RaceStartTime)
+                    {
+                        BotStuckAlpha += GetWorld()->GetDeltaSeconds() * 0.15f;
+                    }
+                }
+            }
+            else
+            {
+                BotStuckAlpha -= GetWorld()->GetDeltaSeconds() * 2.0f;
+            }
+            BotStuckAlpha = FMath::Clamp(BotStuckAlpha, 0.0f, 1.0f);
+            if(BotStuckAlpha >= 0.999f)
+            {
+                IsBotRespawnAllowed = true;
+            }
+            else if(BotStuckAlpha <= 0.001f)
+            {
+                IsBotRespawnAllowed = false;
+            }
+        }
     }
 }
 
@@ -140,6 +164,11 @@ void ARacerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
     {
         if(UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
         {
+            if(Drive_Action)
+            {
+                EIC->BindAction(Drive_Action, ETriggerEvent::Triggered, this, &ARacerPawn::Drive);
+                EIC->BindAction(Drive_Action, ETriggerEvent::Completed, this, &ARacerPawn::Drive);
+            }
             if(Throttle_Action)
             {
                 EIC->BindAction(Throttle_Action, ETriggerEvent::Triggered, this, &ARacerPawn::Throttle);
@@ -183,6 +212,10 @@ void ARacerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
             {
                 EIC->BindAction(OpenMenu_Action, ETriggerEvent::Started, this, &ARacerPawn::OpenMenu);
             }
+            if(Respawn_Action)
+            {
+                EIC->BindAction(Respawn_Action, ETriggerEvent::Started, this, &ARacerPawn::RespawnVehicle);
+            }
         }
     }
 }
@@ -192,6 +225,8 @@ void ARacerPawn::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Out
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(ARacerPawn, TurnIndicatorSetting);
     DOREPLIFETIME(ARacerPawn, IsDrivingEnabled);
+    DOREPLIFETIME(ARacerPawn, IsRespawnAllowed);
+    DOREPLIFETIME(ARacerPawn, IsBotRespawnAllowed);
 }
 
 void ARacerPawn::SetupCarParts()
@@ -354,16 +389,20 @@ void ARacerPawn::SelectCamera(int Index)
     }
 }
 
+void ARacerPawn::Drive(const FInputActionValue& Value)
+{
+    VehicleMovementComponent->SetThrottleInput(FMath::Clamp(Value.Get<float>(), 0.0f, 1.0f));
+    VehicleMovementComponent->SetBrakeInput(FMath::Clamp(-Value.Get<float>(), 0.0f, 1.0f));
+}
+
 void ARacerPawn::Throttle(const FInputActionValue& Value)
 {
-    float ThrottleValue = Value.Get<float>();
-    VehicleMovementComponent->SetThrottleInput(ThrottleValue);
+    VehicleMovementComponent->SetThrottleInput(Value.Get<float>());
 }
 
 void ARacerPawn::Brake(const FInputActionValue& Value)
 {
-    float BrakeValue = Value.Get<float>();
-    VehicleMovementComponent->SetBrakeInput(BrakeValue);
+    VehicleMovementComponent->SetBrakeInput(Value.Get<float>());
 }
 
 void ARacerPawn::HandBrakeStarted(const FInputActionValue& Value)
@@ -449,6 +488,51 @@ void ARacerPawn::OpenMenu(const FInputActionValue& Value)
     }
 }
 
+void ARacerPawn::RespawnVehicle(const FInputActionValue& Value)
+{
+    if(!IsRespawnAllowed) return;
+    ServerRespawnVehicle();
+}
+
+void ARacerPawn::ServerRespawnVehicle_Implementation()
+{
+    if(AController* C = GetController())
+    {
+        if(IsRespawnAllowed)
+        {
+            GetMesh()->SetSimulatePhysics(false);
+            SetActorLocationAndRotation(C->StartSpot->GetActorLocation() + FVector(0.0f, 0.0f, 600.0f), C->StartSpot->GetActorRotation(), false, nullptr, ETeleportType::ResetPhysics);
+            GetMesh()->SetSimulatePhysics(true);
+            if(RacerState)
+            {
+                RacerState->CurrentCheckpoint = 0;
+                RacerState->IsLapInvalidated = false;
+                IsRespawnAllowed = false;
+                RespawnAllowedAlpha = 0.0f;
+                IsBotRespawnAllowed = false;
+                BotStuckAlpha = 0.0f;
+            }
+        }
+        //respawning for bots
+        if(ARaceBotController* RBC = Cast<ARaceBotController>(C))
+        {
+            if(IsRespawnAllowed || IsBotRespawnAllowed)
+            {
+                GetMesh()->SetSimulatePhysics(false);
+                SetActorLocationAndRotation(C->StartSpot->GetActorLocation() + FVector(0.0f, 0.0f, 600.0f), C->StartSpot->GetActorRotation(), false, nullptr, ETeleportType::ResetPhysics);
+                GetMesh()->SetSimulatePhysics(true);
+                RBC->CurrentCheckpoint = 0;
+                RBC->IsLapInvalidated = false;
+                IsRespawnAllowed = false;
+                RespawnAllowedAlpha = 0.0f;
+                IsBotRespawnAllowed = false;
+                BotStuckAlpha = 0.0f;
+            }
+        }
+    }
+}
+
+
 void ARacerPawn::ServerSetTurnIndicator_Implementation(float Value)
 {
     TurnIndicatorSetting = Value;
@@ -456,13 +540,15 @@ void ARacerPawn::ServerSetTurnIndicator_Implementation(float Value)
 
 void ARacerPawn::CheckpointCollision(AActor* ThisActor, AActor* OtherActor)
 {
-    if(HasAuthority() || IsLocallyControlled())
+    if(HasAuthority())
     {
         if(ARaceCheckpoint* Checkpoint = Cast<ARaceCheckpoint>(OtherActor))
         {
-            if(RacerState)
+            if(ARaceState* RaceState = Cast<ARaceState>(UGameplayStatics::GetGameState(GetWorld())))
             {
-                if(ARaceState* RaceState = Cast<ARaceState>(UGameplayStatics::GetGameState(GetWorld())))
+                if(RaceState->IsRaceOver) return;
+                
+                if(RacerState)
                 {
                     if(Checkpoint->CheckpointIndex != 0)
                     {
@@ -484,22 +570,71 @@ void ARacerPawn::CheckpointCollision(AActor* ThisActor, AActor* OtherActor)
                             else
                             {
                                 RacerState->CurrentLap++;
-                                RacerState->LapTimes.Add(RaceState->GetServerWorldTimeSeconds() - RaceState->RaceStartTime);
-                                if(IsLocallyControlled())
+                                TArray<float> tmp = RacerState->LapTimes;
+                                tmp.Add(RaceState->GetServerWorldTimeSeconds() - RaceState->RaceStartTime);
+                                RacerState->LapTimes = tmp;
+
+                                if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
                                 {
-                                    if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
+                                    RacerController->AddLapTime(RacerState->CurrentLap, RacerState->LapTimes.Last());
+                                }
+                                
+                                if(RacerState->BestLapTime < 0.0f)
+                                {
+                                    RacerState->BestLapTime = RacerState->LapTimes[0];
+                                }
+                                else
+                                {
+                                    float CurrentLapTime = RaceState->GetServerWorldTimeSeconds() - RacerState->CurrentLapStartTime;
+                                    if(CurrentLapTime < RacerState->BestLapTime)
                                     {
-                                        RacerController->AddLapTime(RacerState->CurrentLap, RacerState->LapTimes.Last());
+                                        RacerState->BestLapTime = CurrentLapTime;
                                     }
                                 }
-                                if(HasAuthority() && RacerState->CurrentLap == RaceState->MaxLaps)
+                            
+                                if(RacerState->CurrentLap == RaceState->MaxLaps && (RaceState->GameType != GameTypeEnum::Practice))
                                 {
-                                    RaceState->FinishTimes.Add(FFinishInfo(RacerState->GetUniqueId(), RacerState->LapTimes.Last()));
+                                    RaceState->FinishTimes.Add(FFinishInfo(RacerState->RacerInfo.PlayerName, RacerState->LapTimes.Last()));
                                     AutoDrivingComponent->IsAutoDrivingEnabled = true;
                                     if(ARacerController* RacerController = Cast<ARacerController>(GetController()))
                                     {
-                                        RacerController->Client_OnRaceFinished(RaceState->FinishTimes.Num());
+                                        RacerController->Client_OnRaceFinished(RaceState->FinishTimes.Num(), RacerState->LapTimes);
                                     }
+                                }
+                            }
+                            RacerState->CurrentLapStartTime = RaceState->GetServerWorldTimeSeconds();
+                        }
+                    }
+                }
+                else if(ARaceBotController* Bot = Cast<ARaceBotController>(GetController()))
+                {
+                    if(Checkpoint->CheckpointIndex != 0)
+                    {
+                        if(Checkpoint->CheckpointIndex == Bot->CurrentCheckpoint + 1)
+                        {
+                            Bot->CurrentCheckpoint = Checkpoint->CheckpointIndex;
+    
+                        }
+                    }
+                    else
+                    {
+                        if(Bot->CurrentCheckpoint == RaceState->MaxCheckpointIndex)
+                        {
+                            Bot->CurrentCheckpoint = Checkpoint->CheckpointIndex;
+                            if(Bot->IsLapInvalidated)
+                            {
+                                Bot->IsLapInvalidated = false;
+                            }
+                            else
+                            {
+                                Bot->CurrentLap++;
+                                TArray<float> tmp = Bot->LapTimes;
+                                tmp.Add(RaceState->GetServerWorldTimeSeconds() - RaceState->RaceStartTime);
+                                Bot->LapTimes = tmp;
+
+                                if(Bot->CurrentLap == RaceState->MaxLaps)
+                                {
+                                    RaceState->FinishTimes.Add(FFinishInfo(Bot->BotName, Bot->LapTimes.Last()));
                                 }
                             }
                         }
@@ -559,7 +694,6 @@ bool ARacerPawn::CheckAreWheelsOffGround()
             !(RaceState->OnTrackMaterials.Contains(VehicleMovementComponent->GetWheelState(i).PhysMaterial)))
         {
             WheelsOffGround++;
-            Print(UKismetStringLibrary::Conv_IntToString(WheelsOffGround), 0.0f, FColor::Red);
         }
         if(WheelsOffGround >= 2)
         {

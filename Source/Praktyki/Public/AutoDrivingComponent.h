@@ -22,6 +22,7 @@ protected:
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(BlueprintReadWrite)
 	APathSpline* PathSpline;
@@ -54,7 +55,7 @@ public:
 	float SteeringExponent = 2.0f;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
-	bool IsDebugEnabled = true;
+	bool IsDebugEnabled = false;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	float MinSpeed = 30.0f;
@@ -71,7 +72,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	float SpeedAdjustmentRange = 30.0f;
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Replicated)
 	bool IsAutoDrivingEnabled = false;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -87,5 +88,5 @@ public:
 	float ConvertToCMS(float KMH);
 
 	UFUNCTION(BlueprintCallable)
-	void CalculateThrottleAndSteering_Old(float& Throttle, float& Steering);
+	void CalculateThrottleAndSteering(float& Throttle, float& Steering);
 };

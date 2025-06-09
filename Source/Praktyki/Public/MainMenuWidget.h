@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameTypeEnum.h"
 #include "Blueprint/UserWidget.h"
 #include "MainMenuWidget.generated.h"
 
@@ -28,5 +29,11 @@ public:
 	void UpdateShouldFillWithBots(bool ShouldFill);
 
 	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateShouldInvalidateLaps(bool ShouldInvalidate);
+
+	UFUNCTION(BlueprintImplementableEvent)
 	void UpdatePlayerNames(const TArray<FString>& Names);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateGameType(const TEnumAsByte<GameTypeEnum>& GameType);
 };

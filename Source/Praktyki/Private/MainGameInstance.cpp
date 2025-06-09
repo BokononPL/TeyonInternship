@@ -24,7 +24,9 @@ void UMainGameInstance::TravelToMap(FString MapName)
 		ConnectedPlayersCount = GameMode->MainMenuControllers.Num();
 		MaxPlayersCount = GameMode->MaxPlayersCount;
 		ShouldFillWithBots = GameMode->ShouldFillWithBots;
+		ShouldInvalidateLaps = GameMode->ShouldInvalidateLaps;
 		TimeLimit = GameMode->TimeLimit;
+		GameType = GameMode->GameType;
 	}
 	UKismetSystemLibrary::ExecuteConsoleCommand(GetWorld(), "servertravel " + MapName, UGameplayStatics::GetPlayerController(GetWorld(),0));
 }
@@ -53,12 +55,7 @@ void UMainGameInstance::HostGame(int32 MaxPlayers, bool ShouldUse_LAN)
 			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 			if(OnlineSessionPtr->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings))
 			{
-				Print("Session created", 20.0f);
 				OnlineSessionPtr->StartSession(NAME_GameSession);
-			}
-			else
-			{
-				Print("Session not created", 20.0f);
 			}
 		}
 	}
@@ -72,14 +69,7 @@ void UMainGameInstance::JoinGame(FSearchResult SearchResult)
 		{
 			OnJoinSessionCompleteDelegateHandle = OnlineSessionPtr->AddOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteDelegate);
 			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			if(OnlineSessionPtr->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, SearchResult.SearchResult))
-			{
-				Print("Session joined", 20.0f);
-			}
-			else
-			{
-				Print("Session not joined", 20.0f);
-			}
+			OnlineSessionPtr->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, SearchResult.SearchResult);
 		}
 	}
 }
@@ -126,14 +116,7 @@ void UMainGameInstance::DestroyGame()
 		if(IOnlineSessionPtr OnlineSessionPtr = OnlineSubsystem->GetSessionInterface())
 		{
 			OnDestroySessionCompleteDelegateHandle = OnlineSessionPtr->AddOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteDelegate);
-			if(OnlineSessionPtr->DestroySession(NAME_GameSession, OnDestroySessionCompleteDelegate))
-			{
-				Print("Session destroyed", 20.0f);
-			}
-			else
-			{
-				Print("Session not destroyed", 20.0f);
-			}
+			OnlineSessionPtr->DestroySession(NAME_GameSession, OnDestroySessionCompleteDelegate);
 		}
 	}
 }
@@ -151,7 +134,6 @@ void UMainGameInstance::SearchForSessionsComplete(bool IsSuccessful)
 				Results.Add(FSearchResult(SearchResult));
 			}
 			OnSearchCompleted.Broadcast(Results);
-			Print("Search Completed", 20.0f);
 		}
 	}
 }
