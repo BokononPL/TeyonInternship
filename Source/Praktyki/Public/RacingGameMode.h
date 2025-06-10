@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "RaceCheckpoint.h"
 #include "GameFramework/GameModeBase.h"
-#include "CPPUtils.h"
 #include "FinishInfo.h"
 #include "RacerPawn.h"
 #include "RacingGameMode.generated.h"

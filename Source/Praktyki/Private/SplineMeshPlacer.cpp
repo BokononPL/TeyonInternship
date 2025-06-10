@@ -4,6 +4,7 @@
 #include "SplineMeshPlacer.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values

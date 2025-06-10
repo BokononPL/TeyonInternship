@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
-#include "CPPUtils.h"
 #include "FinishInfo.h"
 #include "GameTypeEnum.h"
 #include "RaceState.generated.h"

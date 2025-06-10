@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "AutoDrivingComponent.h"
 #include "WheeledVehiclePawn.h"
-#include "CPPUtils.h"
 #include "PlayerScore.h"
 #include "EnhancedInputComponent.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "RaceCheckpoint.h"
 #include "Camera/CameraComponent.h"
+#include "Components/AudioComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "RacerPawn.generated.h"
 

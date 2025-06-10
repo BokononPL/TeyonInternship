@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "MainMenuController.h"
 #include "GameFramework/GameModeBase.h"
-#include "CPPUtils.h"
 #include "MainMenuGameMode.generated.h"
 
 /**

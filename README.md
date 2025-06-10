@@ -14,7 +14,7 @@
 
 - Turn indicators ;)
 
-- Support for gamepads and steering wheels (NOTE: this feature is completely untested because I didn't have those input devices to test it)
+- Support for gamepads (NOTE: this feature is completely untested because I didn't have a gamepad to test it)
 
 ### Keyboard controls:
 

@@ -3,7 +3,6 @@
 
 #include "RacerState.h"
 
-#include "CPPUtils.h"
 #include "Net/UnrealNetwork.h"
 
 ARacerState::ARacerState()

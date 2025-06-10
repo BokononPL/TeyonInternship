@@ -3,7 +3,6 @@
 
 #include "AutoDrivingComponent.h"
 
-#include "CPPUtils.h"
 #include "RacerPawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
